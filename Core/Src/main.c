@@ -93,7 +93,7 @@ int main(void)
 	/* USER CODE BEGIN 2 */
 	HAL_TIM_Base_Start_IT(&htim2);
 	setTimer0(250);
-	int index = 0;
+	int counter = 0;
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -102,18 +102,23 @@ int main(void)
 	{
 		while (timer0_flag == 0);
 		timer0_flag = 0;
-		updateLEDMatrix(index++);
-		if (index == 8) {
-			index = 0;
+
+		updateLEDMatrix(index_led_matrix++);
+		if (index_led_matrix == 8) {
+			index_led_matrix = 0;
 		}
+
+		++counter;
+		if (counter == 8) {
+			counter = 0;
+			shift_left_matrix();
+		}
+		/* USER CODE END WHILE */
+
+		/* USER CODE BEGIN 3 */
 	}
-
-	/* USER CODE END WHILE */
-
-	/* USER CODE BEGIN 3 */
+	/* USER CODE END 3 */
 }
-/* USER CODE END 3 */
-
 /**
  * @brief System Clock Configuration
  * @retval None

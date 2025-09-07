@@ -10,7 +10,6 @@
 
 const int MAX_LED_MATRIX = 8;
 int index_led_matrix = 0;
-//uint8_t matrix_buffer[8] = {0xE7, 0xE7, 0xDB, 0xDB, 0xC3, 0xBD, 0xBD, 0xBD};
 uint8_t matrix_buffer[8] = {0xE7, 0xE7, 0xDB, 0xDB, 0x81, 0xBD, 0x7E, 0x7E};
 uint8_t row_map[8] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
 
@@ -74,5 +73,11 @@ void updateLEDMatrix(int index){
 		set_row(index);
 		set_col(index);
 		break;
+	}
+}
+
+void shift_left_matrix() {
+	for (int i = 0; i < MAX_LED_MATRIX; ++i) {
+		matrix_buffer[i] = (matrix_buffer[i] << 1) | (matrix_buffer[i] >> 7);
 	}
 }
