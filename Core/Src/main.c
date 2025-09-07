@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "led7seg.h"
+#include "software_timer.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -94,26 +95,44 @@ int main(void)
 	updateClockBuffer();
 	update7SEG(index_led++);
 	HAL_GPIO_WritePin(DOT_GPIO_Port, DOT_Pin, 0);
+	setTimer0(10);
+	/**
+	 * Report 1: If this line is missed, the software timer will not work! :O
+	 */
+	/**
+	 * Report 2: 1 is smaller than 10, which is the current interrupt period; thus, the counter still ends up as 0
+	 * after the division. Bangggg!
+	 */
+	/**
+	 * Report 3: The counter can be set as 1 which means that the flag has a chance to be raised, resulting in a proper
+	 * timer interrupt. BUuumm!
+	 */
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1)
 	{
-		second++;
-		if (second >= 60){
-			second = 0;
-			minute++;
+		//		second++;
+		//		if (second >= 60){
+		//			second = 0;
+		//			minute++;
+		//		}
+		//		if (minute >= 60){
+		//			minute = 0;
+		//			hour++;
+		//		}
+		//		if (hour >= 24){
+		//			hour = 0;
+		//		}
+		//		updateClockBuffer();
+
+		if(timer0_flag == 1){
+			HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+			setTimer0(2000);
+
 		}
-		if (minute >= 60){
-			minute = 0;
-			hour++;
-		}
-		if (hour >= 24){
-			hour = 0;
-		}
-		updateClockBuffer();
-		HAL_Delay(1000);
+
 	}
 
 	/* USER CODE END WHILE */
@@ -255,6 +274,8 @@ static void MX_GPIO_Init(void)
 int counter_1 = 100;
 int counter_2 = 25;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+	timer_run();
+
 	--counter_1;
 	--counter_2;
 	if (counter_1 <= 0) {
