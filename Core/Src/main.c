@@ -46,7 +46,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+int hour = 15, minute = 8, second = 50;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -92,8 +92,14 @@ int main(void)
 	MX_TIM2_Init();
 	/* USER CODE BEGIN 2 */
 	HAL_TIM_Base_Start_IT(&htim2);
+
+	updateClockBuffer();
+	update7SEG(index_led++);
+	HAL_GPIO_WritePin(DOT_GPIO_Port, DOT_Pin, 0);
+
 	setTimer0(250);
-	int counter = 0;
+	int counter_1 = 0;
+	int counter_2 = 0;
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -103,15 +109,41 @@ int main(void)
 		while (timer0_flag == 0);
 		timer0_flag = 0;
 
+		++counter_1;
+		++counter_2;
+
+		if (counter_1 == 4) {
+			counter_1 = 0;
+			led_7seg_toggle_dot();
+		}
+
+		if (counter_2 == 8) {
+			counter_2 = 0;
+			shift_left_matrix();
+		}
+
+		update7SEG(index_led++);
+		if (index_led >= 4) {
+			index_led = 0;
+		}
+
+		second++;
+		if (second >= 60){
+			second = 0;
+			minute++;
+		}
+		if (minute >= 60){
+			minute = 0;
+			hour++;
+		}
+		if (hour >= 24){
+			hour = 0;
+		}
+		updateClockBuffer();
+
 		updateLEDMatrix(index_led_matrix++);
 		if (index_led_matrix == 8) {
 			index_led_matrix = 0;
-		}
-
-		++counter;
-		if (counter == 8) {
-			counter = 0;
-			shift_left_matrix();
 		}
 		/* USER CODE END WHILE */
 
@@ -156,7 +188,13 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void updateClockBuffer()
+{
+	led_buffer[0] = hour / 10;
+	led_buffer[1] = hour % 10;
+	led_buffer[2] = minute / 10;
+	led_buffer[3] = minute % 10;
+}
 /* USER CODE END 4 */
 
 /**
