@@ -18,6 +18,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "tim.h"
+#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -41,7 +43,6 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN PV */
 int hour = 15, minute = 8, second = 50;
@@ -49,8 +50,6 @@ int hour = 15, minute = 8, second = 50;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
-static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 void updateClockBuffer();
 /* USER CODE END PFP */
@@ -95,44 +94,42 @@ int main(void)
 	updateClockBuffer();
 	update7SEG(index_led++);
 	HAL_GPIO_WritePin(DOT_GPIO_Port, DOT_Pin, 0);
-	setTimer0(10);
-	/**
-	 * Report 1: If this line is missed, the software timer will not work! :O
-	 */
-	/**
-	 * Report 2: 1 is smaller than 10, which is the current interrupt period; thus, the counter still ends up as 0
-	 * after the division. Bangggg!
-	 */
-	/**
-	 * Report 3: The counter can be set as 1 which means that the flag has a chance to be raised, resulting in a proper
-	 * timer interrupt. BUuumm!
-	 */
+	setTimer0(250);
+	int counter = 0;
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1)
 	{
-		//		second++;
-		//		if (second >= 60){
-		//			second = 0;
-		//			minute++;
-		//		}
-		//		if (minute >= 60){
-		//			minute = 0;
-		//			hour++;
-		//		}
-		//		if (hour >= 24){
-		//			hour = 0;
-		//		}
-		//		updateClockBuffer();
+		while (timer0_flag == 0);
 
-		if(timer0_flag == 1){
-			HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
-			setTimer0(2000);
+		timer0_flag = 0;
+		++counter;
 
+		if (counter == 4) {
+			counter = 0;
+			led_7seg_toggle_dot();
 		}
 
+		update7SEG(index_led++);
+		if (index_led >= 4) {
+			index_led = 0;
+		}
+
+		second++;
+		if (second >= 60){
+			second = 0;
+			minute++;
+		}
+		if (minute >= 60){
+			minute = 0;
+			hour++;
+		}
+		if (hour >= 24){
+			hour = 0;
+		}
+		updateClockBuffer();
 	}
 
 	/* USER CODE END WHILE */
@@ -178,120 +175,7 @@ void SystemClock_Config(void)
 	}
 }
 
-/**
- * @brief TIM2 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_TIM2_Init(void)
-{
-
-	/* USER CODE BEGIN TIM2_Init 0 */
-
-	/* USER CODE END TIM2_Init 0 */
-
-	TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-	TIM_MasterConfigTypeDef sMasterConfig = {0};
-
-	/* USER CODE BEGIN TIM2_Init 1 */
-
-	/* USER CODE END TIM2_Init 1 */
-	htim2.Instance = TIM2;
-	htim2.Init.Prescaler = 7999;
-	htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim2.Init.Period = 9;
-	htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-	htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-	if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
-	{
-		Error_Handler();
-	}
-	sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-	if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
-	{
-		Error_Handler();
-	}
-	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
-	{
-		Error_Handler();
-	}
-	/* USER CODE BEGIN TIM2_Init 2 */
-
-	/* USER CODE END TIM2_Init 2 */
-
-}
-
-/**
- * @brief GPIO Initialization Function
- * @param None
- * @retval None
- */
-static void MX_GPIO_Init(void)
-{
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
-	/* USER CODE BEGIN MX_GPIO_Init_1 */
-
-	/* USER CODE END MX_GPIO_Init_1 */
-
-	/* GPIO Ports Clock Enable */
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-	__HAL_RCC_GPIOB_CLK_ENABLE();
-
-	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOA, DOT_Pin|LED_RED_Pin|EN_0_Pin|EN_1_Pin
-			|EN_2_Pin|EN_3_Pin, GPIO_PIN_RESET);
-
-	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOB, LED7SEG_a_Pin|LED7SEG_b_Pin|LED7SEG_c_Pin|LED7SEG_d_Pin
-			|LED7SEG_e_Pin|LED7SEG_f_Pin|LED7SEG_g_Pin, GPIO_PIN_RESET);
-
-	/*Configure GPIO pins : DOT_Pin LED_RED_Pin EN_0_Pin EN_1_Pin
-                           EN_2_Pin EN_3_Pin */
-	GPIO_InitStruct.Pin = DOT_Pin|LED_RED_Pin|EN_0_Pin|EN_1_Pin
-			|EN_2_Pin|EN_3_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-	/*Configure GPIO pins : LED7SEG_a_Pin LED7SEG_b_Pin LED7SEG_c_Pin LED7SEG_d_Pin
-                           LED7SEG_e_Pin LED7SEG_f_Pin LED7SEG_g_Pin */
-	GPIO_InitStruct.Pin = LED7SEG_a_Pin|LED7SEG_b_Pin|LED7SEG_c_Pin|LED7SEG_d_Pin
-			|LED7SEG_e_Pin|LED7SEG_f_Pin|LED7SEG_g_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-	/* USER CODE BEGIN MX_GPIO_Init_2 */
-
-	/* USER CODE END MX_GPIO_Init_2 */
-}
-
 /* USER CODE BEGIN 4 */
-int counter_1 = 100;
-int counter_2 = 25;
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-	timer_run();
-
-	--counter_1;
-	--counter_2;
-	if (counter_1 <= 0) {
-		counter_1 = 100;
-		led_7seg_toggle_dot();
-	}
-	if (counter_2 <=0) {
-		counter_2 = 25;
-		update7SEG(index_led++);
-		if (index_led >= 4) {
-			index_led = 0;
-		}
-	}
-
-}
-
 void updateClockBuffer()
 {
 	led_buffer[0] = hour / 10;
