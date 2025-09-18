@@ -1,3 +1,4 @@
 Debug/
 proteus/*
 !proteus/lab2.pdsprj
+.settings/
