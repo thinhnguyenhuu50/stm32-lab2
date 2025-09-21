@@ -92,6 +92,7 @@ int main(void)
 	MX_TIM2_Init();
 	/* USER CODE BEGIN 2 */
 	HAL_TIM_Base_Start_IT(&htim2);
+	HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, 1);
 	setTimer0(250);
 	int index = 0;
 	/* USER CODE END 2 */
@@ -102,6 +103,7 @@ int main(void)
 	{
 		while (timer0_flag == 0);
 		timer0_flag = 0;
+		HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
 		updateLEDMatrix(index++);
 		if (index == 8) {
 			index = 0;
