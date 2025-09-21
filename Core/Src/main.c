@@ -90,6 +90,7 @@ int main(void)
 	MX_GPIO_Init();
 	MX_TIM2_Init();
 	/* USER CODE BEGIN 2 */
+	HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, 1);
 	HAL_TIM_Base_Start_IT(&htim2);
 	led_7seg_set_digit(1, 2);
 	led_7seg_display();
@@ -237,6 +238,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	--counter;
 	if (counter <= 0) {
 		counter = 50;
+		HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
 		led_7seg_display();
 	}
 
