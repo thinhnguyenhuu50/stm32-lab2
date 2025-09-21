@@ -92,6 +92,7 @@ int main(void)
 	MX_TIM2_Init();
 	/* USER CODE BEGIN 2 */
 	HAL_TIM_Base_Start_IT(&htim2);
+	HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, 1);
 	updateClockBuffer();
 	update7SEG(index_led++);
 	HAL_GPIO_WritePin(DOT_GPIO_Port, DOT_Pin, 0);
@@ -284,6 +285,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	}
 	if (counter_2 <=0) {
 		counter_2 = 25;
+		HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
 		update7SEG(index_led++);
 		if (index_led >= 4) {
 			index_led = 0;
